@@ -263,8 +263,6 @@
             try {
                 await fetchDepartments();
                 await fetchStaffs();
-            } catch (error) {
-                staffRows.innerHTML = `<tr><td colspan="5">Không thể tải dữ liệu</td></tr>`;
             } finally {
                 onSetLoading(false);
             }
