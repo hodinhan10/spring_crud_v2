@@ -4,15 +4,15 @@ public class Staff {
     private Long id;
     private String name;
     private String email;
-    private Long departmentId;
+    private Long projectId;
 
     public Staff() {}
 
-    public Staff(Long id, String name, String email, Long departmentId) {
+    public Staff(Long id, String name, String email, Long projectId) {
         this.id = id;
         this.name = name;
         this.email = email;
-        this.departmentId = departmentId;
+        this.projectId = projectId;
     }
 
     public Long getId() { return id; }
@@ -24,6 +24,6 @@ public class Staff {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public Long getDepartmentId() { return departmentId; }
-    public void setDepartmentId(Long departmentId) { this.departmentId = departmentId; }
+    public Long getProjectId() { return projectId; }
+    public void setProjectId(Long projectId) { this.projectId = projectId; }
 }

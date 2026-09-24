@@ -2,12 +2,12 @@ const API = axios.create({
     baseURL: "/api",
 });
 
-const departmentApi = {
+const projectApi = {
     list() {
-        return API.get("/departments");
+        return API.get("/projects");
     },
     detail(id) {
-        return API.get(`/departments/${id}/staffs`);
+        return API.get(`/projects/${id}/staffs`);
     },
 };
 

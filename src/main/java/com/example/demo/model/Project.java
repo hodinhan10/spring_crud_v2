@@ -3,14 +3,14 @@ package com.example.demo.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Department {
+public class Project {
     private Long id;
     private String name;
     private List<Staff> staffs = new ArrayList<>();
 
-    public Department() {}
+    public Project() {}
 
-    public Department(Long id, String name) {
+    public Project(Long id, String name) {
         this.id = id;
         this.name = name;
     }

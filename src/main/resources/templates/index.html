@@ -30,7 +30,7 @@
             flex-wrap: wrap;
         }
 
-        .department-filter {
+        .project-filter {
             margin-bottom: 16px;
         }
 
@@ -104,9 +104,9 @@
                 <input id="email" name="email" type="email" required>
             </div>
             <div class="field">
-                <label for="departmentId">Phòng ban</label>
-                <select id="departmentId" name="departmentId" required>
-                    <option value="">-- Chọn phòng ban --</option>
+                <label for="projectId">Dự án</label>
+                <select id="projectId" name="projectId" required>
+                    <option value="">-- Chọn dự án --</option>
                 </select>
             </div>
             <div class="actions">
@@ -116,10 +116,10 @@
         </form>
 
         <h2>Danh sách nhân viên</h2>
-        <div class="department-filter">
-            <label for="department-filter">Phòng ban</label>
-            <select id="department-filter" onchange="onChangeDepartment(this.value)">
-                <option value="">Tất cả phòng ban</option>
+        <div class="project-filter">
+            <label for="project-filter">Dự án</label>
+            <select id="project-filter" onchange="onChangeProject(this.value)">
+                <option value="">Tất cả dự án</option>
             </select>
         </div>
         <table border="1" cellpadding="8" cellspacing="0">
@@ -128,7 +128,7 @@
                     <th>ID</th>
                     <th>Tên</th>
                     <th>Email</th>
-                    <th>Phòng ban</th>
+                    <th>Dự án</th>
                     <th>Hành động</th>
                 </tr>
             </thead>
@@ -141,8 +141,9 @@
     <script>
         const staffRows = document.getElementById("staff-rows");
         const staffForm = document.getElementById("staff-form");
-        const departmentSelect = staffForm.elements.departmentId;
-        const departmentFilter = document.getElementById("department-filter");
+        const projectSelect = staffForm.elements.projectId;
+        const projectFilter = document.getElementById("project-filter");
+        let projectNames = [];
         let editingStaffId = null;
 
         const onSetLoading = (isLoading) => {
@@ -155,30 +156,32 @@
             document.getElementById("form-title").textContent = "Thêm nhân viên";
         };
 
-        const fetchDepartments = async () => {
-            const { data } = await departmentApi.list();
-            const departmentOptions = data.map((department) =>
-                `<option value="${department.id}">${department.name}</option>`
+        const fetchProjects = async () => {
+            const { data } = await projectApi.list();
+            projectNames = data;
+            console.log({projectNames});
+            const projectOptions = data.map((project) =>
+                `<option value="${project.id}">${project.name}</option>`
             ).join("");
 
-            departmentSelect.innerHTML = `
-                <option value="">-- Chọn phòng ban --</option>
-                ${departmentOptions}
+            projectSelect.innerHTML = `
+                <option value="">-- Chọn dự án --</option>
+                ${projectOptions}
             `;
-            departmentFilter.innerHTML = `
-                <option value="">Tất cả phòng ban</option>
-                ${departmentOptions}
+            projectFilter.innerHTML = `
+                <option value="">Tất cả dự án</option>
+                ${projectOptions}
             `;
         };
 
-        const onChangeDepartment = async (departmentId) => {
-            await fetchStaffs(departmentId);
+        const onChangeProject = async (projectId) => {
+            await fetchStaffs(projectId);
         };
 
-        const fetchStaffs = async (departmentId = "") => {
+        const fetchStaffs = async (projectId = "") => {
             try {
-                const { data } = departmentId
-                    ? await departmentApi.detail(departmentId)
+                const { data } = projectId
+                    ? await projectApi.detail(projectId)
                         .then((response) => ({ data: response.data.staffs }))
                     : await staffApi.list();
 
@@ -186,13 +189,13 @@
                     staffRows.innerHTML = `<tr><td colspan="5">Không có dữ liệu</td></tr>`;
                     return;
                 }
-
+                console.log({data});
                 staffRows.innerHTML = data.map((staff) => `
                     <tr>
                         <td>${staff.id}</td>
                         <td>${staff.name}</td>
                         <td>${staff.email}</td>
-                        <td>${staff.departmentId}</td>
+                        <td>${projectNames.find((project) => project.id === staff.projectId)?.name}</td>
                         <td>
                             <button type="button" onclick="onEditStaff(${staff.id})">Sửa</button>
                             <button type="button" onclick="onDeleteStaff(${staff.id})">Xóa</button>
@@ -212,7 +215,7 @@
                 document.getElementById("form-title").textContent = "Sửa nhân viên";
                 staffForm.elements.name.value = data.name;
                 staffForm.elements.email.value = data.email;
-                staffForm.elements.departmentId.value = data.departmentId;
+                staffForm.elements.projectId.value = data.projectId;
             } catch (error) {
                 console.error(error);
             } finally {
@@ -228,7 +231,7 @@
             try {
                 await staffApi.remove(id);
                 if (editingStaffId === id) onResetForm();
-                await fetchStaffs(departmentFilter.value);
+                await fetchStaffs(projectFilter.value);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -241,7 +244,7 @@
             const data = {
                 name: staffForm.elements.name.value.trim(),
                 email: staffForm.elements.email.value.trim(),
-                departmentId: Number(staffForm.elements.departmentId.value),
+                projectId: Number(staffForm.elements.projectId.value),
             };
 
             onSetLoading(true);
@@ -250,7 +253,7 @@
                 else await staffApi.create(data);
 
                 onResetForm();
-                await fetchStaffs(departmentFilter.value);
+                await fetchStaffs(projectFilter.value);
             } catch (error) {
                 console.error(error);
             } finally {
@@ -261,8 +264,10 @@
         const onInitPage = async () => {
             onSetLoading(true);
             try {
-                await fetchDepartments();
+                await fetchProjects();
                 await fetchStaffs();
+            } catch (error) {
+                console.error(error);
             } finally {
                 onSetLoading(false);
             }

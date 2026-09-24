@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.model.Department;
+import com.example.demo.model.Project;
 import com.example.demo.model.Staff;
 import org.springframework.stereotype.Service;
 
@@ -13,13 +13,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public class OrganizationService {
 
     // Single source of truth
-    private final List<Department> departmentList = new ArrayList<>();
+    private final List<Project> projectList = new ArrayList<>();
     private final AtomicLong staffIdCounter = new AtomicLong(1);
 
     public OrganizationService() {
-        // Seed mock departments
-        departmentList.add(new Department(101L, "Engineering"));
-        departmentList.add(new Department(102L, "Human Resources"));
+        // Seed mock projects
+        projectList.add(new Project(101L, "Engineering"));
+        projectList.add(new Project(102L, "Human Resources"));
 
         // Seed initial staff
         createStaff(new Staff(null, "Alice Smith", "alice@example.com", 101L));
@@ -27,28 +27,28 @@ public class OrganizationService {
         createStaff(new Staff(null, "Charlie Brown", "charlie@example.com", 102L));
     }
 
-    // Helper: Find department by ID
-    private Optional<Department> findDepartmentById(Long departmentId) {
-        return departmentList.stream()
-                .filter(dept -> dept.getId().equals(departmentId))
+    // Helper: Find  project by ID
+    private Optional<Project> findProjectById(Long projectId) {
+        return projectList.stream()
+                .filter(proj -> proj.getId().equals(projectId))
                 .findFirst();
     }
 
     // --- STAFF CRUD OPERATIONS ---
 
-    // Get ALL staff across all departments
+    // Get ALL staff across all projects
     public List<Staff> getAllStaff() {
         List<Staff> allStaff = new ArrayList<>();
-        for (Department dept : departmentList) {
-            allStaff.addAll(dept.getStaffs());
+        for (Project proj : projectList) {
+            allStaff.addAll(proj.getStaffs());
         }
         return allStaff;
     }
 
     // Get a single staff by ID
     public Optional<Staff> getStaffById(Long staffId) {
-        for (Department dept : departmentList) {
-            for (Staff staff : dept.getStaffs()) {
+        for (Project proj : projectList) {
+            for (Staff staff : proj.getStaffs()) {
                 if (staff.getId().equals(staffId)) {
                     return Optional.of(staff);
                 }
@@ -57,41 +57,41 @@ public class OrganizationService {
         return Optional.empty();
     }
 
-    // CREATE staff: Add to specified Department's staff list
+    // CREATE staff: Add to specified Project's staff list
     public Optional<Staff> createStaff(Staff staff) {
-        Optional<Department> deptOpt = findDepartmentById(staff.getDepartmentId());
-        if (deptOpt.isEmpty()) {
-            return Optional.empty(); // Department not found
+        Optional<Project> projOpt = findProjectById(staff.getProjectId());
+        if (projOpt.isEmpty()) {
+            return Optional.empty(); // Project not found
         }
 
         staff.setId(staffIdCounter.getAndIncrement());
-        deptOpt.get().getStaffs().add(staff);
+        projOpt.get().getStaffs().add(staff);
         return Optional.of(staff);
     }
 
-    // UPDATE staff: Handles field updates and moving staff if departmentId changes
+    // UPDATE staff: Handles field updates and moving staff if projectId changes
     public Optional<Staff> updateStaff(Long id, Staff updatedStaff) {
-        // 1. Check if the new department exists
-        Optional<Department> targetDeptOpt = findDepartmentById(updatedStaff.getDepartmentId());
-        if (targetDeptOpt.isEmpty()) {
+        // 1. Check if the new project exists
+        Optional<Project> targetProjOpt = findProjectById(updatedStaff.getProjectId());
+        if (targetProjOpt.isEmpty()) {
             return Optional.empty();
         }
 
-        // 2. Find existing staff and current department
-        for (Department dept : departmentList) {
-            List<Staff> deptStaffs = dept.getStaffs();
-            for (int i = 0; i < deptStaffs.size(); i++) {
-                Staff existing = deptStaffs.get(i);
+        // 2. Find existing staff and current project
+        for (Project proj : projectList) {
+            List<Staff> projStaffs = proj.getStaffs();
+            for (int i = 0; i < projStaffs.size(); i++) {
+                Staff existing = projStaffs.get(i);
                 if (existing.getId().equals(id)) {
                     
                     updatedStaff.setId(id);
 
-                    // If department changed, move staff to new department list
-                    if (!existing.getDepartmentId().equals(updatedStaff.getDepartmentId())) {
-                        deptStaffs.remove(i); // Remove from old department
-                        targetDeptOpt.get().getStaffs().add(updatedStaff); // Add to new department
+                    // If project changed, move staff to new project list
+                    if (!existing.getProjectId().equals(updatedStaff.getProjectId())) {
+                        projStaffs.remove(i); // Remove from old project
+                        targetProjOpt.get().getStaffs().add(updatedStaff); // Add to new project
                     } else {
-                        deptStaffs.set(i, updatedStaff); // Update in-place
+                        projStaffs.set(i, updatedStaff); // Update in-place
                     }
                     return Optional.of(updatedStaff);
                 }
@@ -100,10 +100,10 @@ public class OrganizationService {
         return Optional.empty(); // Staff ID not found
     }
 
-    // DELETE staff: Removes staff directly from its department list
+    // DELETE staff: Removes staff directly from its project list
     public boolean deleteStaff(Long staffId) {
-        for (Department dept : departmentList) {
-            boolean removed = dept.getStaffs().removeIf(s -> s.getId().equals(staffId));
+        for (Project proj : projectList) {
+            boolean removed = proj.getStaffs().removeIf(s -> s.getId().equals(staffId));
             if (removed) {
                 return true;
             }
@@ -111,13 +111,13 @@ public class OrganizationService {
         return false;
     }
 
-    // --- DEPARTMENT OPERATIONS ---
+    // --- PROJECT OPERATIONS ---
 
-    public List<Department> getAllDepartments() {
-        return new ArrayList<>(departmentList);
+    public List<Project> getAllProjects() {
+        return new ArrayList<>(projectList);
     }
 
-    public Optional<Department> getDepartmentWithStaffs(Long departmentId) {
-        return findDepartmentById(departmentId);
+    public Optional<Project> getProjectWithStaffs(Long projectId) {
+        return findProjectById(projectId);
     }
 }
